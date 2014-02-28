@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings, TemplateHaskell, QuasiQuotes, TypeFamilies, MultiParamTypeClasses, ScopedTypeVariables, GeneralizedNewtypeDeriving, RecordWildCards #-}
 module Main (main) where
 
+import Text.Julius
 import Yesod
 import Yesod.Static
 import Yesod.Angular
@@ -23,11 +24,12 @@ mkYesod "App" [parseRoutes|
 
 instance Yesod App
 instance YesodAngular App where
-    urlAngularJs _ = Left $ StaticR $ StaticRoute ["angular", "angular.min.js"] []
+    urlAngularJs _ = Left $ StaticR $ StaticRoute ["angular", "angular.js"] []
+    urlAngularRouteJs _ = Left $ StaticR $ StaticRoute ["angular", "angular-route.js"] []
 
-type Angular = GAngular App App ()
+type Angular = AngularT App ()
 
-handleHomeR :: Handler RepHtml
+handleHomeR :: Handler Html
 handleHomeR = runAngular $ do
     cmdGetPeople <- addCommand $ \() -> do
         people' <- getYesod >>= liftIO . readIORef . ipeople
@@ -57,4 +59,4 @@ main = do
     s <- static "static"
     p <- newIORef Map.empty
     ni <- newIORef 1
-    warpDebug 3000 $ App s p ni
+    warp 3000 $ App s p ni
